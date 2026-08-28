@@ -6,15 +6,15 @@
 <title>Pickleball Tournament</title>
 <style>
   :root{
-    --bg:#0f1220; --panel:#171a2e; --panel2:#1f2340; --text:#e9ecff;
-    --muted:#9aa3c7; --accent:#6ee7b7; --accent2:#60a5fa; --danger:#f87171;
-    --gold:#fbbf24; --line:#2a2f52; --purple:#c084fc;
+    --bg:#0f1220;--panel:#171a2e;--panel2:#1f2340;--text:#e9ecff;
+    --muted:#9aa3c7;--accent:#6ee7b7;--accent2:#60a5fa;--danger:#f87171;
+    --gold:#fbbf24;--line:#2a2f52;--purple:#c084fc;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
        background:linear-gradient(180deg,#0b0e1c,#141834);color:var(--text);min-height:100vh}
-  header{padding:20px;text-align:center;border-bottom:1px solid var(--line);background:rgba(0,0,0,.2);position:relative}
-  header h1{margin:0;font-size:24px;letter-spacing:.5px}
+  header{padding:20px;text-align:center;border-bottom:1px solid var(--line);background:rgba(0,0,0,.2)}
+  header h1{margin:0;font-size:24px}
   header p{margin:6px 0 0;color:var(--muted);font-size:13px}
   .header-controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px}
   #syncStatus{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
@@ -25,7 +25,6 @@
                cursor:pointer;border:1px solid transparent}
   #adminStatus.viewer{background:rgba(154,163,199,.15);color:var(--muted);border-color:var(--line)}
   #adminStatus.admin{background:rgba(192,132,252,.15);color:var(--purple);border-color:var(--purple)}
-  #adminStatus:hover{opacity:.85}
   .wrap{max-width:1100px;margin:0 auto;padding:16px}
   .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
   .tab{padding:10px 14px;background:var(--panel);border:1px solid var(--line);
@@ -44,34 +43,39 @@
   tr.qual3{background:rgba(110,231,183,.06)}
   tr.qual2{background:rgba(96,165,250,.08)}
   tr.wild{background:rgba(192,132,252,.10)}
-  .match{display:grid;grid-template-columns:1fr 60px 20px 60px 1fr auto;
-         gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line);font-size:13px}
-  .match .p1{text-align:right}
-  .match .p2{text-align:left}
-  .match input{width:100%;padding:6px;background:#0b0e1c;border:1px solid var(--line);
-               border-radius:6px;color:var(--text);text-align:center;font-size:13px}
-  .match input:disabled{opacity:.5;cursor:not-allowed}
-  .match .vs{color:var(--muted);text-align:center}
-  .score-display{padding:6px;text-align:center;font-weight:600;font-size:14px;color:var(--text)}
-  .score-empty{padding:6px;text-align:center;color:var(--muted);font-size:12px}
+
+  /* ADMIN match row: 6 cols with button */
+  .match-admin{display:grid;grid-template-columns:1fr 60px 20px 60px 1fr auto;
+               gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line);font-size:13px}
+  /* VIEWER match row: 5 cols no button */
+  .match-viewer{display:grid;grid-template-columns:1fr 60px 20px 60px 1fr;
+                gap:8px;align-items:center;padding:8px;border-bottom:1px solid var(--line);font-size:13px}
+  .match-admin .p1,.match-viewer .p1{text-align:right}
+  .match-admin .p2,.match-viewer .p2{text-align:left}
+  .match-admin input,.match-viewer input{width:100%;padding:6px;background:#0b0e1c;
+               border:1px solid var(--line);border-radius:6px;color:var(--text);text-align:center;font-size:13px}
+  .match-admin input:disabled{opacity:.5;cursor:not-allowed}
+  .vs{color:var(--muted);text-align:center}
+  .score-display{padding:6px;text-align:center;font-weight:700;font-size:14px;color:var(--text)}
+  .score-pending{padding:6px;text-align:center;color:var(--muted);font-size:12px}
   .btn{padding:6px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
   .btn-update{background:var(--accent);color:#062f24}
   .btn-update:hover{background:#5dd5a4}
-  .btn-update:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
   .btn-reset{background:var(--danger);color:#3a0d0d;padding:10px 16px;font-size:13px}
-  .btn-reset:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
-  .played{background:rgba(110,231,183,.05)}
-  .won{color:var(--accent);font-weight:600}
+  .played{background:rgba(110,231,183,.04)}
+  .won{color:var(--accent);font-weight:700}
   .empty{color:var(--muted);font-style:italic;padding:12px;text-align:center}
   .bracket{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
   .ko-match{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}
   .ko-match .label{color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-  .ko-row{display:grid;grid-template-columns:1fr 55px;gap:6px;align-items:center;padding:4px 0;font-size:13px}
-  .ko-row input{padding:5px;background:#0b0e1c;border:1px solid var(--line);border-radius:5px;
-                color:var(--text);text-align:center}
+  .ko-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:13px;gap:8px}
+  .ko-row span{flex:1}
+  .ko-row input{width:55px;padding:5px;background:#0b0e1c;border:1px solid var(--line);
+                border-radius:5px;color:var(--text);text-align:center}
   .ko-row input:disabled{opacity:.5}
-  .ko-row .ko-score{padding:4px;text-align:center;font-weight:600;color:var(--text)}
-  .ko-match .btn{width:100%;margin-top:6px}
+  .ko-score{width:55px;text-align:center;font-weight:700;font-size:14px;color:var(--text)}
+  .ko-score-pending{width:55px;text-align:center;color:var(--muted);font-size:12px}
+  .ko-match .btn{width:100%;margin-top:8px}
   .stage-note{color:var(--muted);font-size:12px;margin-bottom:8px}
   .champion{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3a2200;
             padding:20px;border-radius:12px;text-align:center;font-size:20px;font-weight:800;margin-top:12px}
@@ -83,33 +87,31 @@
             border-radius:10px;padding:12px;font-size:12px;color:var(--muted);margin-bottom:12px}
   .info-box b{color:var(--accent2)}
   .info-box code{background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px;color:var(--accent);font-size:11px}
-  .info-box ol{color:var(--text)}
+  .info-box ol{color:var(--text);margin:6px 0 0 18px;padding:0}
   .info-box ol li{margin:3px 0}
-  .setup-warning{background:rgba(248,113,113,.1);border:1px solid var(--danger);
-                 border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px}
-  .setup-warning h3{margin:0 0 8px;color:var(--danger)}
-  .setup-warning code{background:#000;padding:2px 6px;border-radius:3px;color:var(--accent);font-size:11px}
-
+  .setup-box{background:rgba(248,113,113,.1);border:1px solid var(--danger);
+              border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px}
+  .setup-box h3{margin:0 0 8px;color:var(--danger)}
   /* Modal */
-  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;
-                  align-items:center;justify-content:center;z-index:100}
-  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;
-         padding:24px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .modal h2{color:var(--purple);margin-bottom:16px}
-  .modal p{font-size:13px;color:var(--muted);margin:0 0 14px}
-  .modal input{width:100%;padding:10px 12px;background:#0b0e1c;border:1px solid var(--line);
-               border-radius:8px;color:var(--text);font-size:14px;margin-bottom:12px}
-  .modal input:focus{outline:none;border-color:var(--purple)}
-  .modal-actions{display:flex;gap:8px;justify-content:flex-end}
-  .btn-primary{background:var(--purple);color:#2b1245;padding:10px 20px}
-  .btn-primary:hover{opacity:.9}
-  .btn-secondary{background:var(--panel2);color:var(--text);padding:10px 20px;border:1px solid var(--line)}
-  .error-msg{color:var(--danger);font-size:12px;margin-top:8px;min-height:16px}
-
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;
+                  align-items:center;justify-content:center;z-index:200}
+  .modal{background:var(--panel);border:1px solid var(--purple);border-radius:14px;
+         padding:28px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .modal h2{color:var(--purple);margin:0 0 8px}
+  .modal p{font-size:13px;color:var(--muted);margin:0 0 16px}
+  .modal input[type=password]{width:100%;padding:11px 12px;background:#0b0e1c;
+               border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:4px}
+  .modal input[type=password]:focus{outline:none;border-color:var(--purple)}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .btn-primary{background:var(--purple);color:#2b1245;padding:10px 20px;font-size:13px}
+  .btn-secondary{background:var(--panel2);color:var(--text);padding:10px 20px;
+                 border:1px solid var(--line);font-size:13px}
+  .error-msg{color:var(--danger);font-size:12px;min-height:16px;margin-bottom:4px}
   @media(max-width:700px){
     .two-col{grid-template-columns:1fr}
-    .match{grid-template-columns:1fr 50px 15px 50px 1fr;gap:6px;font-size:12px}
-    .match .btn{grid-column:1/-1;margin-top:6px}
+    .match-admin{grid-template-columns:1fr 48px 16px 48px 1fr auto;gap:5px;font-size:12px}
+    .match-admin .btn{grid-column:1/-1;margin-top:5px}
+    .match-viewer{grid-template-columns:1fr 48px 16px 48px 1fr;gap:5px;font-size:12px}
     th,td{padding:6px 2px;font-size:11px}
   }
 </style>
@@ -125,9 +127,9 @@
 </header>
 
 <div class="wrap">
-  <div id="setupWarning" class="setup-warning hidden">
+  <div id="setupBox" class="setup-box hidden">
     <h3>⚠️ Firebase not configured</h3>
-    Live sync is OFF. Scores save locally only. Fill in <code>FIREBASE_CONFIG</code> in the file.
+    Scores save locally only (not shared). Paste your Firebase config inside <code>index.html</code> to enable live sync.
   </div>
 
   <div class="tabs">
@@ -145,16 +147,16 @@
         <b>📊 Ranking Rules</b><br><br>
         <b>Legend:</b> <code>P</code>=Played · <code>W</code>=Wins · <code>L</code>=Losses · <code>PF</code>=Points For · <code>PA</code>=Points Against<br><br>
         <b>Sort order:</b>
-        <ol style="margin:6px 0 0 18px;padding:0">
-          <li><b>Points</b> — Win = 2, Loss = 0</li>
-          <li><b>Win%</b> = <code>W / P</code></li>
-          <li><b>NRR</b> = <code>(PF − PA) / P</code></li>
-          <li><b>PR</b> = <code>PF / PA</code></li>
+        <ol>
+          <li><b>Points</b> — Win=2, Loss=0</li>
+          <li><b>Win%</b> = <code>W/P</code></li>
+          <li><b>NRR</b> = <code>(PF−PA)/P</code></li>
+          <li><b>PR</b> = <code>PF/PA</code></li>
           <li><b>PF</b> — total points scored</li>
         </ol>
       </div>
       <table id="tableA"></table>
-      <p class="stage-note" style="margin-top:10px">Top 3 → QF Pools. 4th &amp; 5th enter Wildcard race.</p>
+      <p class="stage-note" style="margin-top:10px">Top 3 → QF Pools &nbsp;|&nbsp; 4th &amp; 5th → Wildcard race</p>
     </div>
     <div class="card"><h2>Pool A Schedule</h2><div id="fixturesA"></div></div>
   </div>
@@ -163,10 +165,10 @@
     <div class="card">
       <h2>Pool B <span class="badge">6 players · 5 matches each</span></h2>
       <div class="info-box">
-        <b>📊 Same ranking rules as Pool A</b> — Points → Win% → NRR → PR → PF. Per-match averages for fair cross-pool comparison in wildcard race.
+        <b>📊 Same ranking rules as Pool A.</b> Per-match averages ensure fair cross-pool comparison in wildcard race.
       </div>
       <table id="tableB"></table>
-      <p class="stage-note" style="margin-top:10px">Top 3 → QF Pools. 4th–6th enter Wildcard race.</p>
+      <p class="stage-note" style="margin-top:10px">Top 3 → QF Pools &nbsp;|&nbsp; 4th–6th → Wildcard race</p>
     </div>
     <div class="card"><h2>Pool B Schedule</h2><div id="fixturesB"></div></div>
   </div>
@@ -175,9 +177,8 @@
     <div class="card">
       <h2>Wildcard Qualification <span class="badge">2 spots</span></h2>
       <div class="info-box">
-        <b>🎯 Wildcard Race</b><br><br>
-        5 non-qualifiers ranked cross-pool. Top 2 → QF Pools.<br>
-        <b>Sort:</b> Points → Win% → NRR → PR → PF (per-match, match-count neutral).
+        <b>🎯 Cross-pool ranking</b> of 5 non-qualifiers (A4, A5, B4, B5, B6). Top 2 → QF Pools.<br>
+        Sort: Points → Win% → NRR → PR → PF (all per-match, match-count neutral).
       </div>
       <div id="wildStatus"></div>
     </div>
@@ -187,10 +188,9 @@
     <div class="card">
       <h2>Quarterfinal Stage <span class="badge">2 pools · 4 players each</span></h2>
       <div class="info-box">
-        <b>🎾 QF Pool Formation</b><br><br>
-        <b>Seeding:</b> #1=A1, #2=B1, #3=A2, #4=B2, #5=A3, #6=B3, #7=WC1, #8=WC2<br>
-        <b>Snake split:</b> QF Pool 1 = seeds 1,4,5,8 · QF Pool 2 = seeds 2,3,6,7<br>
-        <b>Format:</b> Round-robin. Top 2 → Semis.
+        <b>🎾 Seeding:</b> #1=A1, #2=B1, #3=A2, #4=B2, #5=A3, #6=B3, #7=WC1, #8=WC2<br>
+        <b>Snake split:</b> QF Pool 1 = 1,4,5,8 &nbsp;|&nbsp; QF Pool 2 = 2,3,6,7 (balanced: 18=18)<br>
+        Round-robin within each. <b>Top 2 → Semis.</b>
       </div>
       <div id="qfStatus"></div>
     </div>
@@ -200,12 +200,10 @@
     <div class="card">
       <h2>Semis &amp; Final</h2>
       <div class="info-box">
-        <b>🏆 Qualifier Method (IPL-style)</b><br><br>
-        S1=QA winner, S2=QB winner, S3=QA runner-up, S4=QB runner-up.<br>
-        <b>Q1:</b> S1 vs S2 → winner to Final<br>
-        <b>Eliminator:</b> S3 vs S4 → loser out<br>
-        <b>Q2:</b> Q1 loser vs Elim winner → winner to Final<br>
-        <b>Final:</b> Q1 winner vs Q2 winner 🏆
+        <b>🏆 Qualifier Method (IPL-style)</b><br>
+        S1=QA winner · S2=QB winner · S3=QA runner-up · S4=QB runner-up<br>
+        <b>Q1:</b> S1 vs S2 → winner to Final &nbsp;|&nbsp; <b>Eliminator:</b> S3 vs S4 → loser out<br>
+        <b>Q2:</b> Q1 loser vs Elim winner → winner to Final &nbsp;|&nbsp; <b>Final:</b> Q1 winner vs Q2 winner 🏆
       </div>
       <div id="koStatus"></div>
     </div>
@@ -220,518 +218,454 @@
 <div id="loginModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2>🔒 Admin Login</h2>
-    <p>Enter admin password to update scores. Viewers can still see everything without logging in.</p>
-    <input type="password" id="passwordInput" placeholder="Password" autocomplete="off">
-    <div class="error-msg" id="loginError"></div>
+    <p>Enter admin password to update scores. Viewers see everything without logging in.</p>
+    <input type="password" id="pwdInput" placeholder="Enter password" autocomplete="off">
+    <div class="error-msg" id="loginErr"></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeLoginModal()">Cancel</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="submitLogin()">Login</button>
     </div>
   </div>
 </div>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
 <script>
 // ============================================================
 // 🔥 FIREBASE CONFIG — PASTE YOUR CONFIG HERE
 // ============================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyCRCbLh36ccZX_F8arJIaTzM0reQeA_afE",
-  authDomain: "tournamentorganizer08.firebaseapp.com",
-  databaseURL: "https://tournamentorganizer08-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "tournamentorganizer08",
-  storageBucket: "tournamentorganizer08.firebasestorage.app",
-  messagingSenderId: "318742717136",
-  appId: "1:318742717136:web:468f148821bb3aa299f4d5",
-  measurementId: "G-P8P43J69ER"
+const FIREBASE_CONFIG = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://PASTE_YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "PASTE_YOUR_PROJECT",
+  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
 };
 
 // ============================================================
-// 🔒 ADMIN PASSWORDS (SHA-256 hashes)
+// 🔒 ADMIN PASSWORD HASHES (SHA-256)
+// Default password: pickle2025
+// Change: go to https://emn178.github.io/online-tools/sha256.html
+//         type new password → copy hash → replace below
 // ============================================================
-// Default password: "pickle2025"
-// TO CHANGE: open https://emn178.github.io/online-tools/sha256.html
-//   → type your new password → copy the hex hash → replace below.
-// You can add multiple hashes (one per admin) — any matching hash logs in.
-const ADMIN_PASSWORD_HASHES = [
-  "cae13924997febb092a0cf77d14230c3d0c7f1f0b381cf1eba52b4dbac2d4f5e",  // "pickle2025"
-  // "add another hash here for a second admin",
+const ADMIN_HASHES = [
+  "cae13924997febb092a0cf77d14230c3d0c7f1f0b381cf1eba52b4dbac2d4f5e", // pickle2025
 ];
+
 // ============================================================
+// Pure-JS SHA-256 (no crypto.subtle needed — works on HTTP + file://)
+// ============================================================
+function sha256(str){
+  function rightRotate(v,a){return(v>>>a)|(v<<(32-a));}
+  var mathPow=Math.pow,maxWord=mathPow(2,32),lengthProperty='length',i,j,result='';
+  var words=[],asciiBitLength=str[lengthProperty]*8;
+  var hash=sha256.h=sha256.h||[];
+  var k=sha256.k=sha256.k||[];
+  var primeCounter=k[lengthProperty];
+  var isComposite={};
+  for(var candidate=2;primeCounter<64;candidate++){
+    if(!isComposite[candidate]){
+      for(i=0;i<313;i+=candidate)isComposite[i]=candidate;
+      hash[primeCounter]=mathPow(candidate,.5)*maxWord|0;
+      k[primeCounter++]=mathPow(candidate,1/3)*maxWord|0;
+    }
+  }
+  str+='\x80';
+  while(str[lengthProperty]%64-56)str+='\x00';
+  for(i=0;i<str[lengthProperty];i++){
+    j=str.charCodeAt(i);
+    if(j>>8)return;
+    words[i>>2]|=j<<((3-i)%4*8);
+  }
+  words[words[lengthProperty]]=((asciiBitLength/maxWord)|0);
+  words[words[lengthProperty]]=asciiBitLength;
+  for(j=0;j<words[lengthProperty];){
+    var w=words.slice(j,j+=16),oldHash=hash.slice(0);
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var i2=i+j-16;
+      var w15=w[i-15],w2=w[i-2];
+      var a=hash[0],e=hash[4];
+      var temp1=hash[7]+(rightRotate(e,6)^rightRotate(e,11)^rightRotate(e,25))
+                +((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=i<16?w[i]
+                :(w[i-16]+(rightRotate(w15,7)^rightRotate(w15,18)^(w15>>>3))
+                +w[i-7]+(rightRotate(w2,17)^rightRotate(w2,19)^(w2>>>10)))|0);
+      var temp2=(rightRotate(a,2)^rightRotate(a,13)^rightRotate(a,22))
+                +((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[temp1+temp2,a,hash[1],hash[2],e+temp1|0,hash[4],hash[5],hash[6]];
+    }
+    for(i=0;i<8;i++)hash[i]=hash[i]+oldHash[i]|0;
+  }
+  for(i=0;i<8;i++){
+    for(j=3;j+1;j--){
+      var b=hash[i]>>(j*8)&255;
+      result+=(b<16?'0':'')+b.toString(16);
+    }
+  }
+  return result;
+}
 
 // ===== PLAYERS =====
 const POOL_A = ["Affan","Harendra","Tajamul","Kushagra","Harsh"];
 const POOL_B = ["Mohit","Anand","Mayuresh","Amitesh","Fadil","Prayas"];
 
-// ===== ROUND-ROBIN =====
+// ===== SCHEDULER =====
 function roundRobin(players){
-  const arr = [...players];
-  if(arr.length % 2 === 1) arr.push(null);
-  const n = arr.length;
-  const rounds = [];
-  for(let r=0; r<n-1; r++){
-    const round = [];
-    for(let i=0; i<n/2; i++){
-      const a = arr[i], b = arr[n-1-i];
-      if(a && b) round.push([a,b]);
-    }
+  const arr=[...players];
+  if(arr.length%2===1) arr.push(null);
+  const n=arr.length, rounds=[];
+  for(let r=0;r<n-1;r++){
+    const round=[];
+    for(let i=0;i<n/2;i++){const a=arr[i],b=arr[n-1-i];if(a&&b)round.push([a,b]);}
     rounds.push(round);
-    arr.splice(1, 0, arr.pop());
+    arr.splice(1,0,arr.pop());
   }
   return rounds;
 }
-function scheduleFixtures(players){
-  const rounds = roundRobin(players);
-  const out = [];
-  rounds.forEach((round, ri)=> round.forEach(pair=> out.push({pair, round: ri+1})));
-  return {rounds, fixtures: out};
+function schedule(players){
+  const rounds=roundRobin(players),out=[];
+  rounds.forEach((rd,ri)=>rd.forEach(pair=>out.push({pair,round:ri+1})));
+  return{rounds,fixtures:out};
 }
-const SCHED_A = scheduleFixtures(POOL_A);
-const SCHED_B = scheduleFixtures(POOL_B);
+const SCHED_A=schedule(POOL_A), SCHED_B=schedule(POOL_B);
 
 // ===== STATE =====
-let state = {A:{}, B:{}, QA:{}, QB:{}, KO:{}};
-let firebaseOn = false;
-let dbRef = null;
-let isAdmin = localStorage.getItem("pbAdmin") === "true";
+let state={A:{},B:{},QA:{},QB:{},KO:{}};
+let firebaseOn=false, dbRef=null;
+let isAdmin=localStorage.getItem("pbAdmin2025")==="yes";
 
-function setStatus(kind, text){
-  const el = document.getElementById("syncStatus");
-  el.className = kind;
-  el.textContent = text;
-}
+// ===== UI HELPERS =====
+function setSync(cls,txt){const e=document.getElementById("syncStatus");e.className=cls;e.textContent=txt;}
 function updateAdminBadge(){
-  const el = document.getElementById("adminStatus");
-  if(isAdmin){
-    el.className = "admin";
-    el.textContent = "🔓 Admin · Click to logout";
-  }else{
-    el.className = "viewer";
-    el.textContent = "👁️ Viewer · Click to login";
-  }
-  document.getElementById("resetBtn").disabled = !isAdmin;
+  const e=document.getElementById("adminStatus");
+  if(isAdmin){e.className="admin";e.textContent="🔓 Admin · Click to logout";}
+  else{e.className="viewer";e.textContent="👁️ Viewer · Click to login";}
+  document.getElementById("resetBtn").style.display=isAdmin?"inline-block":"none";
 }
 
-// ===== ADMIN LOGIN =====
-async function sha256(text){
-  const buf = new TextEncoder().encode(text);
-  const hash = await crypto.subtle.digest('SHA-256', buf);
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
+// ===== ADMIN MODAL =====
 function toggleAdmin(){
-  if(isAdmin){
-    if(confirm("Logout from admin?")){
-      isAdmin = false;
-      localStorage.removeItem("pbAdmin");
-      updateAdminBadge();
-      rerenderAll();
-    }
-  }else{
-    openLoginModal();
-  }
+  if(isAdmin){if(confirm("Logout from admin?")){isAdmin=false;localStorage.removeItem("pbAdmin2025");updateAdminBadge();rerenderAll();}}
+  else openModal();
 }
-function openLoginModal(){
+function openModal(){
   document.getElementById("loginModal").classList.remove("hidden");
-  document.getElementById("passwordInput").value = "";
-  document.getElementById("loginError").textContent = "";
-  setTimeout(()=> document.getElementById("passwordInput").focus(), 50);
+  document.getElementById("pwdInput").value="";
+  document.getElementById("loginErr").textContent="";
+  setTimeout(()=>document.getElementById("pwdInput").focus(),50);
 }
-function closeLoginModal(){
-  document.getElementById("loginModal").classList.add("hidden");
-}
-async function submitLogin(){
-  const pwd = document.getElementById("passwordInput").value;
-  if(!pwd){ document.getElementById("loginError").textContent = "Enter a password."; return; }
-  const hash = await sha256(pwd);
-  if(ADMIN_PASSWORD_HASHES.includes(hash)){
-    isAdmin = true;
-    localStorage.setItem("pbAdmin","true");
-    closeLoginModal();
-    updateAdminBadge();
-    rerenderAll();
+function closeModal(){document.getElementById("loginModal").classList.add("hidden");}
+function submitLogin(){
+  const pwd=document.getElementById("pwdInput").value.trim();
+  if(!pwd){document.getElementById("loginErr").textContent="Enter a password.";return;}
+  const hash=sha256(pwd);
+  if(ADMIN_HASHES.includes(hash)){
+    isAdmin=true;localStorage.setItem("pbAdmin2025","yes");
+    closeModal();updateAdminBadge();rerenderAll();
   }else{
-    document.getElementById("loginError").textContent = "Wrong password.";
+    document.getElementById("loginErr").textContent="❌ Wrong password. Try again.";
+    document.getElementById("pwdInput").select();
   }
 }
-document.addEventListener("keydown", e=>{
-  if(e.key==="Enter" && !document.getElementById("loginModal").classList.contains("hidden")){
-    submitLogin();
-  }
-  if(e.key==="Escape" && !document.getElementById("loginModal").classList.contains("hidden")){
-    closeLoginModal();
+document.addEventListener("keydown",e=>{
+  const modal=document.getElementById("loginModal");
+  if(!modal.classList.contains("hidden")){
+    if(e.key==="Enter")submitLogin();
+    if(e.key==="Escape")closeModal();
   }
 });
 
 // ===== FIREBASE =====
 function initFirebase(){
-  if(FIREBASE_CONFIG.apiKey === "PASTE_YOUR_API_KEY"){
-    document.getElementById("setupWarning").classList.remove("hidden");
-    setStatus("offline","⚫ Local only");
-    const cached = localStorage.getItem("pbTourney_v6");
-    if(cached) state = JSON.parse(cached);
-    rerenderAll();
-    return;
+  if(FIREBASE_CONFIG.apiKey==="PASTE_YOUR_API_KEY"){
+    document.getElementById("setupBox").classList.remove("hidden");
+    setSync("offline","⚫ Local only");
+    const c=localStorage.getItem("pbState");if(c)state=JSON.parse(c);
+    rerenderAll();return;
   }
   try{
     firebase.initializeApp(FIREBASE_CONFIG);
-    const db = firebase.database();
-    dbRef = db.ref("tournament");
-    firebaseOn = true;
-    setStatus("syncing","🟡 Connecting…");
-    dbRef.on("value", snap=>{
-      const val = snap.val();
-      if(val && typeof val==="object"){
-        state = { A: val.A||{}, B: val.B||{}, QA: val.QA||{}, QB: val.QB||{}, KO: val.KO||{} };
-      }
-      setStatus("live","🟢 Live · Auto-sync");
-      rerenderAll();
-    }, err=>{
-      console.error(err); setStatus("offline","🔴 Connection error");
-    });
+    dbRef=firebase.database().ref("tournament");
+    firebaseOn=true;setSync("syncing","🟡 Connecting…");
+    dbRef.on("value",snap=>{
+      const v=snap.val();
+      if(v&&typeof v==="object") state={A:v.A||{},B:v.B||{},QA:v.QA||{},QB:v.QB||{},KO:v.KO||{}};
+      setSync("live","🟢 Live · Auto-sync");rerenderAll();
+    },err=>{console.error(err);setSync("offline","🔴 Error");});
   }catch(e){
     console.error(e);
-    document.getElementById("setupWarning").classList.remove("hidden");
-    setStatus("offline","🔴 Init failed");
-    rerenderAll();
+    document.getElementById("setupBox").classList.remove("hidden");
+    setSync("offline","🔴 Init failed");rerenderAll();
   }
 }
 function save(){
-  if(!isAdmin){ alert("Login as admin to make changes."); return; }
-  if(firebaseOn && dbRef){
-    setStatus("syncing","🟡 Saving…");
-    dbRef.set(state).then(()=> setStatus("live","🟢 Live · Auto-sync"))
-      .catch(err=>{ console.error(err); setStatus("offline","🔴 Save failed"); });
-  }else{
-    localStorage.setItem("pbTourney_v6", JSON.stringify(state));
-  }
+  if(!isAdmin)return;
+  if(firebaseOn&&dbRef){
+    setSync("syncing","🟡 Saving…");
+    dbRef.set(state).then(()=>setSync("live","🟢 Live · Auto-sync")).catch(e=>{console.error(e);setSync("offline","🔴 Save failed");});
+  }else{localStorage.setItem("pbState",JSON.stringify(state));}
 }
 
 // ===== TABS =====
 document.querySelectorAll(".tab").forEach(t=>{
-  t.onclick = ()=>{
+  t.onclick=()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
     document.querySelectorAll(".tab-panel").forEach(x=>x.classList.add("hidden"));
     t.classList.add("active");
     document.getElementById(t.dataset.tab).classList.remove("hidden");
-    if(t.dataset.tab==="wild") renderWildcards();
-    if(t.dataset.tab==="qfPools") renderQFPools();
-    if(t.dataset.tab==="knockout") renderKnockout();
+    if(t.dataset.tab==="wild")renderWild();
+    if(t.dataset.tab==="qfPools")renderQF();
+    if(t.dataset.tab==="knockout")renderKO();
   };
 });
 
 // ===== FIXTURES =====
-function renderFixtures(stateKey, fixtures, containerId, inputPrefix){
-  const c = document.getElementById(containerId);
-  c.innerHTML = "";
-  let currentRound = 0;
-  fixtures.forEach((fx, idx)=>{
-    if(fx.round !== currentRound){
-      currentRound = fx.round;
-      const hdr = document.createElement("div");
-      hdr.className = "round-hdr";
-      hdr.textContent = `Round ${currentRound}`;
-      c.appendChild(hdr);
+function renderFixtures(sk,fixtures,cid,pfx){
+  const c=document.getElementById(cid);c.innerHTML="";
+  let curRound=0;
+  fixtures.forEach((fx,idx)=>{
+    if(fx.round!==curRound){
+      curRound=fx.round;
+      const h=document.createElement("div");h.className="round-hdr";
+      h.textContent=`Round ${curRound}`;c.appendChild(h);
     }
-    const key = `m${idx}`;
-    const pair = fx.pair;
-    const stored = state[stateKey][key] || {s1:"",s2:"",done:false};
-    const w1 = stored.done && +stored.s1>+stored.s2;
-    const w2 = stored.done && +stored.s2>+stored.s1;
-    const row = document.createElement("div");
-    row.className = "match" + (stored.done?" played":"");
+    const key=`m${idx}`,pair=fx.pair;
+    const st=state[sk][key]||{s1:"",s2:"",done:false};
+    const w1=st.done&&+st.s1>+st.s2, w2=st.done&&+st.s2>+st.s1;
+    const row=document.createElement("div");
+    row.className=(st.done?"played ":"")+(isAdmin?"match-admin":"match-viewer");
 
-    // Score cells: for viewers show plain text, for admins show inputs
-    let s1Cell, s2Cell;
     if(isAdmin){
-      s1Cell = `<input type="number" min="0" value="${stored.s1}" ${stored.done?'disabled':''} id="${inputPrefix}-${key}-s1">`;
-      s2Cell = `<input type="number" min="0" value="${stored.s2}" ${stored.done?'disabled':''} id="${inputPrefix}-${key}-s2">`;
+      row.innerHTML=`
+        <div class="p1 ${w1?'won':''}">${pair[0]}</div>
+        <input type="number" min="0" value="${st.s1}" ${st.done?'disabled':''} id="${pfx}-${key}-s1">
+        <div class="vs">vs</div>
+        <input type="number" min="0" value="${st.s2}" ${st.done?'disabled':''} id="${pfx}-${key}-s2">
+        <div class="p2 ${w2?'won':''}">${pair[1]}</div>
+        <button class="btn btn-update" onclick="updateMatch('${sk}','${key}','${pfx}',${JSON.stringify(pair).replace(/"/g,'&quot;')})">${st.done?'Edit':'Save'}</button>`;
     }else{
-      s1Cell = stored.done ? `<div class="score-display">${stored.s1}</div>` : `<div class="score-empty">—</div>`;
-      s2Cell = stored.done ? `<div class="score-display">${stored.s2}</div>` : `<div class="score-empty">—</div>`;
+      const sc1=st.done?`<div class="score-display">${st.s1}</div>`:`<div class="score-pending">—</div>`;
+      const sc2=st.done?`<div class="score-display">${st.s2}</div>`:`<div class="score-pending">—</div>`;
+      row.innerHTML=`
+        <div class="p1 ${w1?'won':''}">${pair[0]}</div>
+        ${sc1}<div class="vs">vs</div>${sc2}
+        <div class="p2 ${w2?'won':''}">${pair[1]}</div>`;
     }
-
-    const btnHtml = isAdmin
-      ? `<button class="btn btn-update" onclick="updateGeneric('${stateKey}','${key}','${inputPrefix}',${JSON.stringify(pair).replace(/"/g,'&quot;')})">${stored.done?'Edit':'Update'}</button>`
-      : '';
-
-    row.innerHTML = `
-      <div class="p1 ${w1?'won':''}">${pair[0]}</div>
-      ${s1Cell}
-      <div class="vs">vs</div>
-      ${s2Cell}
-      <div class="p2 ${w2?'won':''}">${pair[1]}</div>
-      ${btnHtml}`;
     c.appendChild(row);
   });
 }
-function updateGeneric(stateKey, key, inputPrefix, pairArg){
-  if(!isAdmin) return;
-  const pair = typeof pairArg==="string"?JSON.parse(pairArg):pairArg;
-  const stored = state[stateKey][key] || {};
-  if(stored.done){
-    stored.done=false; state[stateKey][key]=stored; save();
-    if(!firebaseOn) rerenderAll();
-    return;
-  }
-  const s1 = document.getElementById(`${inputPrefix}-${key}-s1`).value;
-  const s2 = document.getElementById(`${inputPrefix}-${key}-s2`).value;
-  if(s1===""||s2===""||+s1===+s2){ alert("Enter valid scores (no ties)."); return; }
-  state[stateKey][key] = {s1:+s1, s2:+s2, done:true, pair};
-  if(["A","B"].includes(stateKey)){ state.QA={}; state.QB={}; state.KO={}; }
-  if(["QA","QB"].includes(stateKey)){ state.KO={}; }
-  save();
-  if(!firebaseOn) rerenderAll();
+function updateMatch(sk,key,pfx,pairArg){
+  if(!isAdmin)return;
+  const pair=typeof pairArg==="string"?JSON.parse(pairArg):pairArg;
+  const st=state[sk][key]||{};
+  if(st.done){st.done=false;state[sk][key]=st;save();if(!firebaseOn)rerenderAll();return;}
+  const s1=document.getElementById(`${pfx}-${key}-s1`).value;
+  const s2=document.getElementById(`${pfx}-${key}-s2`).value;
+  if(s1===""||s2===""||+s1===+s2){alert("Enter valid scores (no ties).");return;}
+  state[sk][key]={s1:+s1,s2:+s2,done:true,pair};
+  if(["A","B"].includes(sk)){state.QA={};state.QB={};state.KO={};}
+  if(["QA","QB"].includes(sk)){state.KO={};}
+  save();if(!firebaseOn)rerenderAll();
 }
 function rerenderAll(){
-  renderFixtures("A", SCHED_A.fixtures, "fixturesA","A");
-  renderFixtures("B", SCHED_B.fixtures, "fixturesB","B");
-  renderTable("A", POOL_A, "tableA", 3);
-  renderTable("B", POOL_B, "tableB", 3);
-  renderWildcards();
-  renderQFPools();
-  renderKnockout();
+  renderFixtures("A",SCHED_A.fixtures,"fixturesA","A");
+  renderFixtures("B",SCHED_B.fixtures,"fixturesB","B");
+  renderTable("A",POOL_A,"tableA",3);
+  renderTable("B",POOL_B,"tableB",3);
+  renderWild();renderQF();renderKO();
 }
 
 // ===== STANDINGS =====
-function computeStandings(players, matches){
-  const s = {};
-  players.forEach(p=> s[p]={name:p,P:0,W:0,L:0,PF:0,PA:0,Pts:0,NRR:0,WinPct:0,PR:0});
+function standings(players,matches){
+  const s={};
+  players.forEach(p=>s[p]={name:p,P:0,W:0,L:0,PF:0,PA:0,Pts:0,NRR:0,WP:0,PR:0});
   Object.values(matches).forEach(m=>{
-    if(!m.done) return;
-    const [a,b] = m.pair;
-    if(!s[a]||!s[b]) return;
-    s[a].P++; s[b].P++;
-    s[a].PF += m.s1; s[a].PA += m.s2;
-    s[b].PF += m.s2; s[b].PA += m.s1;
-    if(m.s1>m.s2){ s[a].W++; s[a].Pts+=2; s[b].L++; }
-    else { s[b].W++; s[b].Pts+=2; s[a].L++; }
+    if(!m.done)return;
+    const[a,b]=m.pair;if(!s[a]||!s[b])return;
+    s[a].P++;s[b].P++;s[a].PF+=m.s1;s[a].PA+=m.s2;s[b].PF+=m.s2;s[b].PA+=m.s1;
+    if(m.s1>m.s2){s[a].W++;s[a].Pts+=2;s[b].L++;}else{s[b].W++;s[b].Pts+=2;s[a].L++;}
   });
   Object.values(s).forEach(r=>{
-    r.NRR = r.P>0 ? ((r.PF-r.PA)/r.P) : 0;
-    r.WinPct = r.P>0 ? (r.W/r.P) : 0;
-    r.PR = r.PA>0 ? (r.PF/r.PA) : (r.PF>0?99:0);
+    r.NRR=r.P>0?(r.PF-r.PA)/r.P:0;
+    r.WP=r.P>0?r.W/r.P:0;
+    r.PR=r.PA>0?r.PF/r.PA:(r.PF>0?99:0);
   });
-  return Object.values(s).sort((x,y)=>
-    y.Pts-x.Pts || y.WinPct-x.WinPct || y.NRR-x.NRR || y.PR-x.PR || y.PF-x.PF
-  );
+  return Object.values(s).sort((x,y)=>y.Pts-x.Pts||y.WP-x.WP||y.NRR-x.NRR||y.PR-x.PR||y.PF-x.PF);
 }
-function renderTable(stateKey, players, tableId, qualCount){
-  const rows = computeStandings(players, state[stateKey]);
-  const cls = qualCount===2 ? "qual2" : "qual3";
-  document.getElementById(tableId).innerHTML = `
-    <thead><tr>
-      <th>#</th><th style="text-align:left">Player</th>
-      <th>P</th><th>W</th><th>L</th><th>PF</th><th>PA</th>
-      <th>Win%</th><th>NRR</th><th>PR</th><th>Pts</th>
-    </tr></thead>
+function renderTable(sk,players,tid,qn){
+  const rows=standings(players,state[sk]);
+  const cls=qn===2?"qual2":"qual3";
+  document.getElementById(tid).innerHTML=`
+    <thead><tr><th>#</th><th style="text-align:left">Player</th>
+    <th>P</th><th>W</th><th>L</th><th>PF</th><th>PA</th>
+    <th>Win%</th><th>NRR</th><th>PR</th><th>Pts</th></tr></thead>
     <tbody>${rows.map((r,i)=>`
-      <tr class="${i<qualCount?cls:''}">
-        <td>${i+1}</td><td class="name">${r.name}</td>
-        <td>${r.P}</td><td>${r.W}</td><td>${r.L}</td>
-        <td>${r.PF}</td><td>${r.PA}</td>
-        <td>${(r.WinPct*100).toFixed(0)}%</td>
-        <td>${r.NRR.toFixed(2)}</td>
-        <td>${r.PR.toFixed(2)}</td>
-        <td><b>${r.Pts}</b></td>
-      </tr>`).join("")}</tbody>`;
+    <tr class="${i<qn?cls:''}">
+      <td>${i+1}</td><td class="name">${r.name}</td>
+      <td>${r.P}</td><td>${r.W}</td><td>${r.L}</td>
+      <td>${r.PF}</td><td>${r.PA}</td>
+      <td>${(r.WP*100).toFixed(0)}%</td>
+      <td>${r.NRR.toFixed(2)}</td>
+      <td>${r.PR.toFixed(2)}</td>
+      <td><b>${r.Pts}</b></td>
+    </tr>`).join("")}</tbody>`;
 }
 
-function fixturesDone(stateKey, fixtures){
-  return fixtures.every((_,i)=> state[stateKey][`m${i}`]?.done);
-}
-function poolsComplete(){ return fixturesDone("A",SCHED_A.fixtures) && fixturesDone("B",SCHED_B.fixtures); }
+function done(sk,fixtures){return fixtures.every((_,i)=>state[sk][`m${i}`]?.done);}
+function poolsDone(){return done("A",SCHED_A.fixtures)&&done("B",SCHED_B.fixtures);}
 
 // ===== WILDCARDS =====
-function getWildcardRanking(){
-  const stA = computeStandings(POOL_A, state.A);
-  const stB = computeStandings(POOL_B, state.B);
-  const nonQual = [...stA.slice(3), ...stB.slice(3)];
-  nonQual.sort((x,y)=>
-    y.Pts-x.Pts || y.WinPct-x.WinPct || y.NRR-x.NRR || y.PR-x.PR || y.PF-x.PF
-  );
-  return nonQual;
+function wildRanking(){
+  const sA=standings(POOL_A,state.A),sB=standings(POOL_B,state.B);
+  return[...sA.slice(3),...sB.slice(3)].sort((x,y)=>
+    y.Pts-x.Pts||y.WP-x.WP||y.NRR-x.NRR||y.PR-x.PR||y.PF-x.PF);
 }
-function renderWildcards(){
-  const c = document.getElementById("wildStatus");
-  if(!poolsComplete()){ c.innerHTML=`<p class="empty">Complete both pool stages first.</p>`; return; }
-  const ranking = getWildcardRanking();
-  const stA = computeStandings(POOL_A, state.A);
-  const stB = computeStandings(POOL_B, state.B);
-  const src = {};
-  stA.forEach((r,i)=> src[r.name] = `A${i+1}`);
-  stB.forEach((r,i)=> src[r.name] = `B${i+1}`);
-  c.innerHTML = `
-    <h3>Cross-Pool Ranking</h3>
-    <table>
-      <thead><tr>
-        <th>#</th><th style="text-align:left">Player</th><th>From</th>
-        <th>P</th><th>W</th><th>L</th><th>PF</th><th>PA</th>
-        <th>Win%</th><th>NRR</th><th>PR</th><th>Pts</th>
-      </tr></thead>
-      <tbody>${ranking.map((r,i)=>`
-        <tr class="${i<2?'wild':''}">
-          <td>${i+1}</td><td class="name">${r.name}</td>
-          <td><span class="badge">${src[r.name]}</span></td>
-          <td>${r.P}</td><td>${r.W}</td><td>${r.L}</td>
-          <td>${r.PF}</td><td>${r.PA}</td>
-          <td>${(r.WinPct*100).toFixed(0)}%</td>
-          <td>${r.NRR.toFixed(2)}</td>
-          <td>${r.PR.toFixed(2)}</td>
-          <td><b>${r.Pts}</b></td>
-        </tr>`).join("")}</tbody>
-    </table>
+function renderWild(){
+  const c=document.getElementById("wildStatus");
+  if(!poolsDone()){c.innerHTML=`<p class="empty">Complete both pool stages first.</p>`;return;}
+  const rk=wildRanking();
+  const sA=standings(POOL_A,state.A),sB=standings(POOL_B,state.B);
+  const src={};sA.forEach((r,i)=>src[r.name]=`A${i+1}`);sB.forEach((r,i)=>src[r.name]=`B${i+1}`);
+  c.innerHTML=`<table>
+    <thead><tr><th>#</th><th style="text-align:left">Player</th><th>From</th>
+    <th>P</th><th>W</th><th>L</th><th>PF</th><th>PA</th>
+    <th>Win%</th><th>NRR</th><th>PR</th><th>Pts</th></tr></thead>
+    <tbody>${rk.map((r,i)=>`
+    <tr class="${i<2?'wild':''}">
+      <td>${i+1}</td><td class="name">${r.name}</td>
+      <td><span class="badge">${src[r.name]}</span></td>
+      <td>${r.P}</td><td>${r.W}</td><td>${r.L}</td>
+      <td>${r.PF}</td><td>${r.PA}</td>
+      <td>${(r.WP*100).toFixed(0)}%</td>
+      <td>${r.NRR.toFixed(2)}</td>
+      <td>${r.PR.toFixed(2)}</td>
+      <td><b>${r.Pts}</b></td>
+    </tr>`).join("")}</tbody></table>
     <p class="stage-note" style="margin-top:10px">Top 2 (purple) get the last 2 QF Pool spots.</p>`;
 }
 
 // ===== QF POOLS =====
-function getQFPools(){
-  const stA = computeStandings(POOL_A, state.A);
-  const stB = computeStandings(POOL_B, state.B);
-  const wild = getWildcardRanking();
-  const seeds = [stA[0].name, stB[0].name, stA[1].name, stB[1].name,
-                 stA[2].name, stB[2].name, wild[0].name, wild[1].name];
-  const QA = [seeds[0], seeds[3], seeds[4], seeds[7]];
-  const QB = [seeds[1], seeds[2], seeds[5], seeds[6]];
-  return {seeds, QA, QB};
+function qfPools(){
+  const sA=standings(POOL_A,state.A),sB=standings(POOL_B,state.B),wc=wildRanking();
+  const seeds=[sA[0].name,sB[0].name,sA[1].name,sB[1].name,sA[2].name,sB[2].name,wc[0].name,wc[1].name];
+  return{seeds,QA:[seeds[0],seeds[3],seeds[4],seeds[7]],QB:[seeds[1],seeds[2],seeds[5],seeds[6]]};
 }
-function renderQFPools(){
-  const c = document.getElementById("qfStatus");
-  if(!poolsComplete()){ c.innerHTML=`<p class="empty">Complete Pool A &amp; Pool B first.</p>`; return; }
-  const {seeds, QA, QB} = getQFPools();
-  const schedQA = scheduleFixtures(QA);
-  const schedQB = scheduleFixtures(QB);
-  window._qaSched = schedQA; window._qbSched = schedQB;
-  c.innerHTML = `
+function renderQF(){
+  const c=document.getElementById("qfStatus");
+  if(!poolsDone()){c.innerHTML=`<p class="empty">Complete Pool A &amp; Pool B first.</p>`;return;}
+  const{seeds,QA,QB}=qfPools();
+  const sqa=schedule(QA),sqb=schedule(QB);
+  window._qaSch=sqa;window._qbSch=sqb;
+  c.innerHTML=`
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
       <b style="color:var(--gold)">Seedings:</b>
       ${seeds.map((n,i)=>`<span style="margin-right:10px">#${i+1} ${n}${i>=6?' <span style="color:var(--purple)">(WC)</span>':''}</span>`).join("")}
     </div>
     <div class="two-col">
       <div>
-        <h3>QF Pool 1 <span class="badge">seeds 1, 4, 5, 8</span></h3>
+        <h3>QF Pool 1 <span class="badge">seeds 1,4,5,8</span></h3>
         <table id="tableQA"></table>
-        <h3 style="margin-top:12px">Schedule</h3>
-        <div id="fixturesQA"></div>
+        <h3 style="margin-top:12px">Schedule</h3><div id="fixturesQA"></div>
       </div>
       <div>
-        <h3>QF Pool 2 <span class="badge">seeds 2, 3, 6, 7</span></h3>
+        <h3>QF Pool 2 <span class="badge">seeds 2,3,6,7</span></h3>
         <table id="tableQB"></table>
-        <h3 style="margin-top:12px">Schedule</h3>
-        <div id="fixturesQB"></div>
+        <h3 style="margin-top:12px">Schedule</h3><div id="fixturesQB"></div>
       </div>
     </div>
     <p class="stage-note" style="margin-top:12px">Top 2 from each pool → Semis.</p>`;
-  renderFixtures("QA", schedQA.fixtures, "fixturesQA", "QA");
-  renderFixtures("QB", schedQB.fixtures, "fixturesQB", "QB");
-  renderTable("QA", QA, "tableQA", 2);
-  renderTable("QB", QB, "tableQB", 2);
+  renderFixtures("QA",sqa.fixtures,"fixturesQA","QA");
+  renderFixtures("QB",sqb.fixtures,"fixturesQB","QB");
+  renderTable("QA",QA,"tableQA",2);
+  renderTable("QB",QB,"tableQB",2);
 }
 
 // ===== SEMIS & FINAL =====
-function qfDone(){
-  return window._qaSched && window._qbSched &&
-         fixturesDone("QA", window._qaSched.fixtures) &&
-         fixturesDone("QB", window._qbSched.fixtures);
-}
-function renderKnockout(){
-  const c = document.getElementById("koStatus");
-  if(!poolsComplete()){ c.innerHTML=`<p class="empty">Complete Pool A &amp; Pool B first.</p>`; return; }
-  const {QA, QB} = getQFPools();
-  window._qaSched = scheduleFixtures(QA); window._qbSched = scheduleFixtures(QB);
-  if(!qfDone()){ c.innerHTML=`<p class="empty">Complete both QF Pools first.</p>`; return; }
-  const stQA = computeStandings(QA, state.QA);
-  const stQB = computeStandings(QB, state.QB);
-  const semiSeeds = [stQA[0].name, stQB[0].name, stQA[1].name, stQB[1].name];
-  c.innerHTML = `
+function renderKO(){
+  const c=document.getElementById("koStatus");
+  if(!poolsDone()){c.innerHTML=`<p class="empty">Complete Pool A &amp; Pool B first.</p>`;return;}
+  const{QA,QB}=qfPools();
+  const sqa=schedule(QA),sqb=schedule(QB);
+  window._qaSch=sqa;window._qbSch=sqb;
+  if(!done("QA",sqa.fixtures)||!done("QB",sqb.fixtures)){
+    c.innerHTML=`<p class="empty">Complete both QF Pools first.</p>`;return;}
+  const sQA=standings(QA,state.QA),sQB=standings(QB,state.QB);
+  const ss=[sQA[0].name,sQB[0].name,sQA[1].name,sQB[1].name];
+  c.innerHTML=`
     <h3>Semifinalists</h3>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
-      ${semiSeeds.map((n,i)=>`<span style="margin-right:10px"><b style="color:var(--gold)">S${i+1}</b> ${n}</span>`).join("")}
+      ${ss.map((n,i)=>`<span style="margin-right:10px"><b style="color:var(--gold)">S${i+1}</b> ${n}</span>`).join("")}
     </div>
     <div class="bracket" id="semiBracket"></div>
     <div id="finalWrap"></div>`;
-  const sb = document.getElementById("semiBracket");
-  const semis = [
-    {key:"q1", label:"Qualifier 1 (S1 vs S2)", pair:[semiSeeds[0], semiSeeds[1]]},
-    {key:"elim", label:"Eliminator (S3 vs S4)", pair:[semiSeeds[2], semiSeeds[3]]},
+  const sb=document.getElementById("semiBracket");
+  const semis=[
+    {key:"q1",label:"Qualifier 1 — S1 vs S2",pair:[ss[0],ss[1]]},
+    {key:"elim",label:"Eliminator — S3 vs S4",pair:[ss[2],ss[3]]},
   ];
-  semis.forEach(m=> sb.appendChild(koCard(m.key, m.label, m.pair)));
-  if(!(state.KO.q1?.done && state.KO.elim?.done)) return;
-  const q1=state.KO.q1, elim=state.KO.elim;
-  const q1Winner = q1.s1>q1.s2 ? semis[0].pair[0] : semis[0].pair[1];
-  const q1Loser  = q1.s1>q1.s2 ? semis[0].pair[1] : semis[0].pair[0];
-  const elimWinner = elim.s1>elim.s2 ? semis[1].pair[0] : semis[1].pair[1];
-  const q2Pair = [q1Loser, elimWinner];
-  sb.appendChild(koCard("q2", "Qualifier 2 (Q1 loser vs Elim winner)", q2Pair));
-  if(!state.KO.q2?.done) return;
-  const q2 = state.KO.q2;
-  const q2Winner = q2.s1>q2.s2 ? q2Pair[0] : q2Pair[1];
-  const finalPair = [q1Winner, q2Winner];
-  const fw = document.getElementById("finalWrap");
-  fw.innerHTML = `<h3 style="margin-top:20px">🏆 Grand Final</h3><div id="finalCard" style="max-width:340px;margin:0 auto"></div>`;
-  document.getElementById("finalCard").appendChild(koCard("final","Final", finalPair, true));
+  semis.forEach(m=>sb.appendChild(koCard(m.key,m.label,m.pair)));
+  if(!(state.KO.q1?.done&&state.KO.elim?.done))return;
+  const q1=state.KO.q1,el=state.KO.elim;
+  const q1w=q1.s1>q1.s2?semis[0].pair[0]:semis[0].pair[1];
+  const q1l=q1.s1>q1.s2?semis[0].pair[1]:semis[0].pair[0];
+  const elw=el.s1>el.s2?semis[1].pair[0]:semis[1].pair[1];
+  const q2p=[q1l,elw];
+  sb.appendChild(koCard("q2","Qualifier 2 — Q1 loser vs Elim winner",q2p));
+  if(!state.KO.q2?.done)return;
+  const q2=state.KO.q2;
+  const q2w=q2.s1>q2.s2?q2p[0]:q2p[1];
+  const fp=[q1w,q2w];
+  const fw=document.getElementById("finalWrap");
+  fw.innerHTML=`<h3 style="margin-top:20px">🏆 Grand Final</h3><div id="finalCard" style="max-width:320px;margin:0 auto"></div>`;
+  document.getElementById("finalCard").appendChild(koCard("final","Final",fp,true));
   if(state.KO.final?.done){
-    const f = state.KO.final;
-    const champ = f.s1>f.s2 ? finalPair[0] : finalPair[1];
-    fw.innerHTML += `<div class="champion">🏆 CHAMPION: ${champ}</div>`;
+    const f=state.KO.final;
+    fw.innerHTML+=`<div class="champion">🏆 CHAMPION: ${f.s1>f.s2?fp[0]:fp[1]}</div>`;
   }
 }
-function koCard(key, label, pair, gold=false){
-  const stored = state.KO[key] || {s1:"",s2:"",done:false};
-  const w1 = stored.done && +stored.s1>+stored.s2;
-  const w2 = stored.done && +stored.s2>+stored.s1;
-  const div = document.createElement("div");
-  div.className = "ko-match";
-
-  let s1Cell, s2Cell;
+function koCard(key,label,pair,gold=false){
+  const st=state.KO[key]||{s1:"",s2:"",done:false};
+  const w1=st.done&&+st.s1>+st.s2,w2=st.done&&+st.s2>+st.s1;
+  const div=document.createElement("div");div.className="ko-match";
+  let s1el,s2el,btnEl="";
   if(isAdmin){
-    s1Cell = `<input type="number" min="0" value="${stored.s1}" ${stored.done?'disabled':''} id="KO-${key}-s1">`;
-    s2Cell = `<input type="number" min="0" value="${stored.s2}" ${stored.done?'disabled':''} id="KO-${key}-s2">`;
+    s1el=`<input type="number" min="0" value="${st.s1}" ${st.done?'disabled':''} id="KO-${key}-s1">`;
+    s2el=`<input type="number" min="0" value="${st.s2}" ${st.done?'disabled':''} id="KO-${key}-s2">`;
+    btnEl=`<button class="btn btn-update" onclick="updateKO('${key}',${JSON.stringify(pair).replace(/"/g,'&quot;')})">${st.done?'Edit':'Save'}</button>`;
   }else{
-    s1Cell = `<div class="ko-score">${stored.done?stored.s1:'—'}</div>`;
-    s2Cell = `<div class="ko-score">${stored.done?stored.s2:'—'}</div>`;
+    s1el=st.done?`<div class="ko-score">${st.s1}</div>`:`<div class="ko-score-pending">—</div>`;
+    s2el=st.done?`<div class="ko-score">${st.s2}</div>`:`<div class="ko-score-pending">—</div>`;
   }
-
-  const btnHtml = isAdmin
-    ? `<button class="btn btn-update" onclick="updateKO('${key}',${JSON.stringify(pair).replace(/"/g,'&quot;')})">${stored.done?'Edit':'Update'}</button>`
-    : '';
-
-  div.innerHTML = `
+  div.innerHTML=`
     <div class="label" ${gold?'style="color:var(--gold)"':''}>${label}</div>
-    <div class="ko-row"><span class="${w1?'won':''}">${pair[0]}</span>${s1Cell}</div>
-    <div class="ko-row"><span class="${w2?'won':''}">${pair[1]}</span>${s2Cell}</div>
-    ${btnHtml}`;
+    <div class="ko-row"><span class="${w1?'won':''}">${pair[0]}</span>${s1el}</div>
+    <div class="ko-row"><span class="${w2?'won':''}">${pair[1]}</span>${s2el}</div>
+    ${btnEl}`;
   return div;
 }
-function updateKO(key, pairArg){
-  if(!isAdmin) return;
-  const pair = typeof pairArg==="string"?JSON.parse(pairArg):pairArg;
-  const stored = state.KO[key] || {};
-  if(stored.done){
-    stored.done=false; state.KO[key]=stored; save();
-    if(!firebaseOn) renderKnockout(); return;
-  }
-  const s1 = document.getElementById(`KO-${key}-s1`).value;
-  const s2 = document.getElementById(`KO-${key}-s2`).value;
-  if(s1===""||s2===""||+s1===+s2){ alert("Enter valid scores."); return; }
-  state.KO[key] = {s1:+s1, s2:+s2, done:true, pair};
-  if(key==="q1"||key==="elim"){ delete state.KO.q2; delete state.KO.final; }
-  if(key==="q2"){ delete state.KO.final; }
-  save();
-  if(!firebaseOn) renderKnockout();
+function updateKO(key,pairArg){
+  if(!isAdmin)return;
+  const pair=typeof pairArg==="string"?JSON.parse(pairArg):pairArg;
+  const st=state.KO[key]||{};
+  if(st.done){st.done=false;state.KO[key]=st;save();if(!firebaseOn)renderKO();return;}
+  const s1=document.getElementById(`KO-${key}-s1`).value;
+  const s2=document.getElementById(`KO-${key}-s2`).value;
+  if(s1===""||s2===""||+s1===+s2){alert("Enter valid scores.");return;}
+  state.KO[key]={s1:+s1,s2:+s2,done:true,pair};
+  if(key==="q1"||key==="elim"){delete state.KO.q2;delete state.KO.final;}
+  if(key==="q2"){delete state.KO.final;}
+  save();if(!firebaseOn)renderKO();
 }
 
 function resetAll(){
-  if(!isAdmin){ alert("Admin login required."); return; }
-  if(!confirm("Wipe ALL results for everyone?")) return;
-  state = {A:{},B:{},QA:{},QB:{},KO:{}};
-  save();
-  if(!firebaseOn) rerenderAll();
+  if(!isAdmin){alert("Admin login required.");return;}
+  if(!confirm("Reset ALL scores for everyone?"))return;
+  state={A:{},B:{},QA:{},QB:{},KO:{}};
+  save();if(!firebaseOn)rerenderAll();
 }
 
-// ===== INIT =====
 updateAdminBadge();
 initFirebase();
 </script>
