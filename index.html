@@ -240,9 +240,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-// ============================================================
-// 🔥 FIREBASE CONFIG — PASTE YOUR CONFIG HERE
-// ============================================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCRCbLh36ccZX_F8arJIaTzM0reQeA_afE",
   authDomain: "tournamentorganizer08.firebaseapp.com",
@@ -253,18 +250,8 @@ const FIREBASE_CONFIG = {
   appId: "1:318742717136:web:468f148821bb3aa299f4d5"
 };
 
-// ============================================================
-// 🔒 ADMIN PASSWORD HASHES (SHA-256)
-// Default password: pickle2025
-// To change:
-//   1. Go to https://emn178.github.io/online-tools/sha256.html
-//   2. Type your new password → copy the 64-char hash
-//   3. Replace the hash string below
-// Multiple admins: add more hashes in the array
-// ============================================================
 const ADMIN_HASHES = [
-  "cae13924997febb092a0cf77d14230c3d0c7f1f0b381cf1eba52b4dbac2d4f5e", // pickle2025
-  // "another_hash_here", // second admin password
+  "cae13924997febb092a0cf77d14230c3d0c7f1f0b381cf1eba52b4dbac2d4f5e",
 ];
 
 // ===== PLAYERS =====
@@ -294,7 +281,6 @@ const SCHED_A=schedule(POOL_A), SCHED_B=schedule(POOL_B);
 // ===== STATE =====
 let state={A:{},B:{},QA:{},QB:{},KO:{}};
 let firebaseOn=false, dbRef=null;
-// Clear stale admin sessions from older versions
 ["pbAdmin","pbTourney_v5","pbTourney_v6"].forEach(k=>localStorage.removeItem(k));
 let isAdmin=localStorage.getItem("pbAdmin2025")==="yes";
 
@@ -638,33 +624,8 @@ function resetAll(){
 
 updateAdminBadge();
 initFirebase();
-</script>
 
-        <input type="text" id="cfg_apiKey" placeholder="AIzaSy..." style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
-      </div>
-      <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:1px">DATABASE URL</div>
-        <input type="text" id="cfg_dbUrl" placeholder="https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app" style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
-      </div>
-      <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:1px">PROJECT ID</div>
-        <input type="text" id="cfg_projectId" placeholder="your-project-id" style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
-      </div>
-      <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:1px">APP ID</div>
-        <input type="text" id="cfg_appId" placeholder="1:xxxxxxxxxx:web:xxxxxxxxxx" style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
-      </div>
-    </div>
-    <div class="error-msg" id="setupErr"></div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeSetup()">Cancel</button>
-      <button class="btn" style="background:var(--accent2);color:#00111a;padding:10px 20px;font-size:13px;font-weight:700" onclick="saveSetup()">💾 Save &amp; Connect</button>
-    </div>
-    <p style="margin-top:10px;font-size:11px;color:var(--muted)">
-      📍 Firebase Console → Project Settings → Your apps → firebaseConfig object
-    </p>
-  </div>
-</div>
+</script>
 
 </body>
 </html>
