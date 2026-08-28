@@ -25,6 +25,14 @@
                cursor:pointer;border:1px solid transparent}
   #adminStatus.viewer{background:rgba(154,163,199,.15);color:var(--muted);border-color:var(--line)}
   #adminStatus.admin{background:rgba(192,132,252,.15);color:var(--purple);border-color:var(--purple)}
+  .btn-login{padding:4px 12px;border-radius:20px;border:1px solid var(--purple);
+             background:rgba(192,132,252,.15);color:var(--purple);font-size:11px;
+             font-weight:600;cursor:pointer}
+  .btn-login:hover{background:rgba(192,132,252,.3)}
+  .btn-logout{padding:4px 12px;border-radius:20px;border:1px solid var(--danger);
+              background:rgba(248,113,113,.15);color:var(--danger);font-size:11px;
+              font-weight:600;cursor:pointer}
+  .btn-logout:hover{background:rgba(248,113,113,.3)}
   .wrap{max-width:1100px;margin:0 auto;padding:16px}
   .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
   .tab{padding:10px 14px;background:var(--panel);border:1px solid var(--line);
@@ -79,7 +87,7 @@
   .stage-note{color:var(--muted);font-size:12px;margin-bottom:8px}
   .champion{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#3a2200;
             padding:20px;border-radius:12px;text-align:center;font-size:20px;font-weight:800;margin-top:12px}
-  .hidden{display:none}
+  .hidden{display:none !important}
   .badge{display:inline-block;padding:2px 8px;background:var(--panel2);border-radius:10px;
          font-size:11px;color:var(--muted);margin-left:6px}
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -122,7 +130,8 @@
   <p>11 players · Group Stage · Wildcards · QF Pools · Qualifier Semis</p>
   <div class="header-controls">
     <div id="syncStatus" class="offline">⚫ Not connected</div>
-    <div id="adminStatus" class="viewer" onclick="toggleAdmin()">👁️ Viewer · Click to login</div>
+    <div id="adminStatus" class="viewer">👁️ Viewer mode</div>
+    <button id="loginBtn" class="btn-login" onclick="toggleAdmin()">🔒 Admin Login</button>
   </div>
 </header>
 
@@ -230,82 +239,35 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
 // ============================================================
 // 🔥 FIREBASE CONFIG — PASTE YOUR CONFIG HERE
 // ============================================================
-const FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://PASTE_YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "PASTE_YOUR_PROJECT",
-  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID"
-};
+const firebaseConfig = {
+  apiKey: "AIzaSyCRCbLh36ccZX_F8arJIaTzM0reQeA_afE",
+  authDomain: "tournamentorganizer08.firebaseapp.com",
+  databaseURL: "https://tournamentorganizer08-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "tournamentorganizer08",
+  storageBucket: "tournamentorganizer08.firebasestorage.app",
+  messagingSenderId: "318742717136",
+  appId: "1:318742717136:web:468f148821bb3aa299f4d5",
+  measurementId: "G-P8P43J69ER"
+}
 
 // ============================================================
 // 🔒 ADMIN PASSWORD HASHES (SHA-256)
 // Default password: pickle2025
-// Change: go to https://emn178.github.io/online-tools/sha256.html
-//         type new password → copy hash → replace below
+// To change:
+//   1. Go to https://emn178.github.io/online-tools/sha256.html
+//   2. Type your new password → copy the 64-char hash
+//   3. Replace the hash string below
+// Multiple admins: add more hashes in the array
 // ============================================================
 const ADMIN_HASHES = [
   "cae13924997febb092a0cf77d14230c3d0c7f1f0b381cf1eba52b4dbac2d4f5e", // pickle2025
+  // "another_hash_here", // second admin password
 ];
-
-// ============================================================
-// Pure-JS SHA-256 (no crypto.subtle needed — works on HTTP + file://)
-// ============================================================
-function sha256(str){
-  function rightRotate(v,a){return(v>>>a)|(v<<(32-a));}
-  var mathPow=Math.pow,maxWord=mathPow(2,32),lengthProperty='length',i,j,result='';
-  var words=[],asciiBitLength=str[lengthProperty]*8;
-  var hash=sha256.h=sha256.h||[];
-  var k=sha256.k=sha256.k||[];
-  var primeCounter=k[lengthProperty];
-  var isComposite={};
-  for(var candidate=2;primeCounter<64;candidate++){
-    if(!isComposite[candidate]){
-      for(i=0;i<313;i+=candidate)isComposite[i]=candidate;
-      hash[primeCounter]=mathPow(candidate,.5)*maxWord|0;
-      k[primeCounter++]=mathPow(candidate,1/3)*maxWord|0;
-    }
-  }
-  str+='\x80';
-  while(str[lengthProperty]%64-56)str+='\x00';
-  for(i=0;i<str[lengthProperty];i++){
-    j=str.charCodeAt(i);
-    if(j>>8)return;
-    words[i>>2]|=j<<((3-i)%4*8);
-  }
-  words[words[lengthProperty]]=((asciiBitLength/maxWord)|0);
-  words[words[lengthProperty]]=asciiBitLength;
-  for(j=0;j<words[lengthProperty];){
-    var w=words.slice(j,j+=16),oldHash=hash.slice(0);
-    hash=hash.slice(0,8);
-    for(i=0;i<64;i++){
-      var i2=i+j-16;
-      var w15=w[i-15],w2=w[i-2];
-      var a=hash[0],e=hash[4];
-      var temp1=hash[7]+(rightRotate(e,6)^rightRotate(e,11)^rightRotate(e,25))
-                +((e&hash[5])^((~e)&hash[6]))+k[i]+(w[i]=i<16?w[i]
-                :(w[i-16]+(rightRotate(w15,7)^rightRotate(w15,18)^(w15>>>3))
-                +w[i-7]+(rightRotate(w2,17)^rightRotate(w2,19)^(w2>>>10)))|0);
-      var temp2=(rightRotate(a,2)^rightRotate(a,13)^rightRotate(a,22))
-                +((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
-      hash=[temp1+temp2,a,hash[1],hash[2],e+temp1|0,hash[4],hash[5],hash[6]];
-    }
-    for(i=0;i<8;i++)hash[i]=hash[i]+oldHash[i]|0;
-  }
-  for(i=0;i<8;i++){
-    for(j=3;j+1;j--){
-      var b=hash[i]>>(j*8)&255;
-      result+=(b<16?'0':'')+b.toString(16);
-    }
-  }
-  return result;
-}
 
 // ===== PLAYERS =====
 const POOL_A = ["Affan","Harendra","Tajamul","Kushagra","Harsh"];
@@ -334,21 +296,41 @@ const SCHED_A=schedule(POOL_A), SCHED_B=schedule(POOL_B);
 // ===== STATE =====
 let state={A:{},B:{},QA:{},QB:{},KO:{}};
 let firebaseOn=false, dbRef=null;
+// Clear stale admin sessions from older versions
+["pbAdmin","pbTourney_v5","pbTourney_v6"].forEach(k=>localStorage.removeItem(k));
 let isAdmin=localStorage.getItem("pbAdmin2025")==="yes";
 
 // ===== UI HELPERS =====
 function setSync(cls,txt){const e=document.getElementById("syncStatus");e.className=cls;e.textContent=txt;}
 function updateAdminBadge(){
-  const e=document.getElementById("adminStatus");
-  if(isAdmin){e.className="admin";e.textContent="🔓 Admin · Click to logout";}
-  else{e.className="viewer";e.textContent="👁️ Viewer · Click to login";}
+  const badge=document.getElementById("adminStatus");
+  const btn=document.getElementById("loginBtn");
+  if(isAdmin){
+    badge.className="admin";
+    badge.textContent="🔓 Admin mode";
+    btn.className="btn-logout";
+    btn.textContent="🚪 Logout";
+  }else{
+    badge.className="viewer";
+    badge.textContent="👁️ Viewer mode";
+    btn.className="btn-login";
+    btn.textContent="🔒 Admin Login";
+  }
   document.getElementById("resetBtn").style.display=isAdmin?"inline-block":"none";
 }
 
 // ===== ADMIN MODAL =====
 function toggleAdmin(){
-  if(isAdmin){if(confirm("Logout from admin?")){isAdmin=false;localStorage.removeItem("pbAdmin2025");updateAdminBadge();rerenderAll();}}
-  else openModal();
+  if(isAdmin){
+    if(confirm("Logout from admin?")){
+      isAdmin=false;
+      localStorage.removeItem("pbAdmin2025");
+      updateAdminBadge();
+      rerenderAll();
+    }
+  }else{
+    openModal();
+  }
 }
 function openModal(){
   document.getElementById("loginModal").classList.remove("hidden");
@@ -360,7 +342,7 @@ function closeModal(){document.getElementById("loginModal").classList.add("hidde
 function submitLogin(){
   const pwd=document.getElementById("pwdInput").value.trim();
   if(!pwd){document.getElementById("loginErr").textContent="Enter a password.";return;}
-  const hash=sha256(pwd);
+  const hash=CryptoJS.SHA256(pwd).toString(CryptoJS.enc.Hex);
   if(ADMIN_HASHES.includes(hash)){
     isAdmin=true;localStorage.setItem("pbAdmin2025","yes");
     closeModal();updateAdminBadge();rerenderAll();
