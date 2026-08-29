@@ -1,4 +1,3 @@
-
 /*
  * Tournament frontend
  * Backend-connected version
@@ -7,7 +6,7 @@
  * All authentication and tournament mutations go through the Node/Express API.
  */
 
-const API_BASE = window.TOURNAMENT_API_BASE || "https://tournamentbackend-nine.vercel.app/api" ||"http://localhost:3000/api";
+const API_BASE = window.TOURNAMENT_API_BASE || "http://localhost:3000/api";
 
 const POOL_A = ["Affan", "Harendra", "Tajamul", "Kushagra", "Harsh", "Mayuresh"];
 const POOL_B = ["Mohit", "Anand", "Aniket", "Amitesh", "Fadil", "Prayas"];
@@ -142,7 +141,14 @@ async function loadTournament() {
     setSync("syncing", "🟡 Loading…");
 
     const data = await api("/tournament");
-    state = data.state || { A: {}, B: {}, QA: {}, QB: {}, KO: {} };
+    const raw = data.state || {};
+    state = {
+      A:  raw.A  || {},
+      B:  raw.B  || {},
+      QA: raw.QA || {},
+      QB: raw.QB || {},
+      KO: raw.KO || {}
+    };
 
     setSync("live", "🟢 Live · Backend sync");
     rerenderAll();
@@ -158,7 +164,16 @@ async function savePoolMatch(sk, key, s1, s2) {
 
   setSync("syncing", "🟡 Saving…");
 
-  const method = state[sk]?.[key]?.done ? "PATCH" : "POST";
+  let varCheck = state[sk]?.[key]?.done;
+  // console.log(varCheck);
+  let method;
+
+  if(varCheck === undefined){
+    method = "POST";
+  }
+  else{
+    method = "PATCH";
+  }
 
   try {
     const data = await api(`/tournament/matches/${sk}/${key}`, {
@@ -166,7 +181,8 @@ async function savePoolMatch(sk, key, s1, s2) {
       body: JSON.stringify({ s1, s2 })
     });
 
-    state = data.state || state;
+    const raw2 = data.state || {};
+    state = { A: raw2.A||{}, B: raw2.B||{}, QA: raw2.QA||{}, QB: raw2.QB||{}, KO: raw2.KO||{} };
     setSync("live", "🟢 Live · Backend sync");
     rerenderAll();
   } catch (err) {
@@ -182,7 +198,18 @@ async function saveKOMatch(key, s1, s2) {
 
   setSync("syncing", "🟡 Saving…");
 
-  const method = state.KO?.[key]?.done ? "PATCH" : "POST";
+  // const method = state.KO?.[key]?.done ? "PATCH" : "POST";
+
+  let varCheck = state.KO?.[key]?.done;
+  // console.log(varCheck);
+  let method;
+
+  if(varCheck === undefined){
+    method = "POST";
+  }
+  else{
+    method = "PATCH";
+  }
 
   try {
     const data = await api(`/tournament/knockout/${key}`, {
@@ -190,7 +217,8 @@ async function saveKOMatch(key, s1, s2) {
       body: JSON.stringify({ s1, s2 })
     });
 
-    state = data.state || state;
+    const raw3 = data.state || {};
+    state = { A: raw3.A||{}, B: raw3.B||{}, QA: raw3.QA||{}, QB: raw3.QB||{}, KO: raw3.KO||{} };
     setSync("live", "🟢 Live · Backend sync");
     rerenderAll();
   } catch (err) {
@@ -628,7 +656,7 @@ function renderKO() {
 
   semis.forEach((m) => sb.appendChild(koCard(m.key, m.label, m.pair)));
 
-  if (!(state.KO.q1?.done && state.KO.elim?.done)) return;
+  if (!(state.KO?.q1?.done && state.KO?.elim?.done)) return;
 
   const q1 = state.KO.q1;
   const el = state.KO.elim;
@@ -643,7 +671,7 @@ function renderKO() {
     koCard("q2", "Qualifier 2 — Q1 loser vs Elim winner", q2p)
   );
 
-  if (!state.KO.q2?.done) return;
+  if (!state.KO?.q2?.done) return;
 
   const q2 = state.KO.q2;
   const q2w = q2.s1 > q2.s2 ? q2p[0] : q2p[1];
@@ -659,7 +687,7 @@ function renderKO() {
     .getElementById("finalCard")
     .appendChild(koCard("final", "Final", fp, true));
 
-  if (state.KO.final?.done) {
+  if (state.KO?.final?.done) {
     const f = state.KO.final;
 
     fw.innerHTML += `
@@ -670,7 +698,7 @@ function renderKO() {
 }
 
 function koCard(key, label, pair, gold = false) {
-  const st = state.KO?.[key] || {
+  const st = (state.KO || {})[key] || {
     s1: "",
     s2: "",
     done: false
@@ -730,10 +758,11 @@ function koCard(key, label, pair, gold = false) {
 async function updateKO(key) {
   if (!isAdmin) return;
 
-  const st = state.KO?.[key] || {};
+  const st = (state.KO || {})[key] || {};
 
   if (st.done) {
     st.done = false;
+    if (!state.KO) state.KO = {};
     state.KO[key] = st;
     renderKO();
     return;
@@ -766,13 +795,8 @@ async function resetAll() {
       method: "POST"
     });
 
-    state = data.state || {
-      A: {},
-      B: {},
-      QA: {},
-      QB: {},
-      KO: {}
-    };
+    const raw4 = data.state || {};
+    state = { A: raw4.A||{}, B: raw4.B||{}, QA: raw4.QA||{}, QB: raw4.QB||{}, KO: raw4.KO||{} };
 
     setSync("live", "🟢 Live · Backend sync");
     rerenderAll();
