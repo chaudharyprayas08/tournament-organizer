@@ -7,7 +7,7 @@
  * All authentication and tournament mutations go through the Node/Express API.
  */
 
-const API_BASE = window.TOURNAMENT_API_BASE ||"http://localhost:3000/api";
+const API_BASE = window.TOURNAMENT_API_BASE || "https://tournamentbackend-nine.vercel.app/api" ||"http://localhost:3000/api";
 
 const POOL_A = ["Affan", "Harendra", "Tajamul", "Kushagra", "Harsh", "Mayuresh"];
 const POOL_B = ["Mohit", "Anand", "Aniket", "Amitesh", "Fadil", "Prayas"];
