@@ -115,12 +115,6 @@
   .btn-secondary{background:var(--panel2);color:var(--text);padding:10px 20px;
                  border:1px solid var(--line);font-size:13px}
   .error-msg{color:var(--danger);font-size:12px;min-height:16px;margin-bottom:4px}
-  #ownerPanel .admin-row{display:flex;align-items:center;justify-content:space-between;
-    padding:8px 10px;background:var(--panel2);border-radius:8px;margin-bottom:6px;font-size:13px}
-  #ownerPanel .admin-row span{color:var(--text)}
-  #ownerPanel .admin-row .role-badge{font-size:10px;padding:2px 8px;border-radius:10px;
-    background:rgba(192,132,252,.2);color:var(--purple);border:1px solid rgba(192,132,252,.3);margin-left:8px}
-  #ownerPanel .admin-row .role-owner{background:rgba(251,191,36,.2);color:var(--gold);border-color:rgba(251,191,36,.3)}
   @media(max-width:700px){
     .two-col{grid-template-columns:1fr}
     .match-admin{grid-template-columns:1fr 48px 16px 48px 1fr auto;gap:5px;font-size:12px}
@@ -226,29 +220,14 @@
   <div style="text-align:center;margin:20px 0">
     <button id="resetBtn" class="btn btn-reset" onclick="resetAll()">🗑️ Reset Everything</button>
   </div>
-
-  <!-- OWNER PANEL -->
-  <div id="ownerPanel" style="display:none;margin:0 0 24px">
-    <div class="card" style="border-color:rgba(192,132,252,.4)">
-      <h2 style="color:var(--purple)">👑 Owner Panel — Manage Admins</h2>
-      <p class="stage-note">Add or remove admins. Admins can update scores only. Only you can reset data and manage access.</p>
-      <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">
-        <input type="email" id="newAdminEmail" placeholder="Admin email address"
-          style="flex:1;min-width:200px;padding:10px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:13px">
-        <button class="btn btn-update" onclick="addAdmin()" style="padding:10px 18px">➕ Add Admin</button>
-      </div>
-      <div id="adminList" style="margin-top:8px"></div>
-    </div>
-  </div>
 </div>
 
 <!-- Login Modal -->
 <div id="loginModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2>🔒 Admin Login</h2>
-    <p>Owner or admin email + password required. Role is verified server-side.</p>
-    <input type="email" id="emailInput" placeholder="Email address" autocomplete="off" style="width:100%;padding:11px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:8px">
-    <input type="password" id="pwdInput" placeholder="Password" autocomplete="off">
+    <p>Enter admin password to update scores. Viewers see everything without logging in.</p>
+    <input type="password" id="pwdInput" placeholder="Enter password" autocomplete="off">
     <div class="error-msg" id="loginErr"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
@@ -259,24 +238,34 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <script>
-const firebaseConfig = {
+// ============================================================
+// 🔥 FIREBASE CONFIG — PASTE YOUR CONFIG HERE
+// ============================================================
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCRCbLh36ccZX_F8arJIaTzM0reQeA_afE",
   authDomain: "tournamentorganizer08.firebaseapp.com",
   databaseURL: "https://tournamentorganizer08-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "tournamentorganizer08",
-  storageBucket: "tournamentorganizer08.firebasestorage.app",
+  storageBucket: "tournamentorganizer08.appspot.com",
   messagingSenderId: "318742717136",
-  appId: "1:318742717136:web:468f148821bb3aa299f4d5",
-  measurementId: "G-P8P43J69ER"
+  appId: "1:318742717136:web:468f148821bb3aa299f4d5"
 };
 
-// ===== ROLES =====
-// Owner email — change this to your email
-const OWNER_EMAIL = "applogin221@gmail.com";
-let userRole = null; // null | "admin" | "owner"
-function emailKey(e){ return e.replace(/\./g,'_').replace(/@/g,'__'); }
+// ============================================================
+// 🔒 ADMIN PASSWORD HASHES (SHA-256)
+// Default password: pickle2025
+// To change:
+//   1. Go to https://emn178.github.io/online-tools/sha256.html
+//   2. Type your new password → copy the 64-char hash
+//   3. Replace the hash string below
+// Multiple admins: add more hashes in the array
+// ============================================================
+const ADMIN_HASHES = [
+  "cae13924997febb092a0cf77d14230c3d0c7f1f0b381cf1eba52b4dbac2d4f5e", // pickle2025
+  // "another_hash_here", // second admin password
+];
 
 // ===== PLAYERS =====
 const POOL_A = ["Affan","Harendra","Tajamul","Kushagra","Harsh"];
@@ -304,65 +293,17 @@ const SCHED_A=schedule(POOL_A), SCHED_B=schedule(POOL_B);
 
 // ===== STATE =====
 let state={A:{},B:{},QA:{},QB:{},KO:{}};
-let firebaseOn=false, dbRef=null, firebaseUser=null, _adminLoginInProgress=false;
-// Admin state ONLY from Firebase Auth — never from localStorage
-["pbAdmin","pbTourney_v5","pbTourney_v6","pbAdmin2025"].forEach(k=>localStorage.removeItem(k));
-let isAdmin=false;
+let firebaseOn=false, dbRef=null;
+// Clear stale admin sessions from older versions
+["pbAdmin","pbTourney_v5","pbTourney_v6"].forEach(k=>localStorage.removeItem(k));
+let isAdmin=localStorage.getItem("pbAdmin2025")==="yes";
 
 // ===== UI HELPERS =====
 function setSync(cls,txt){const e=document.getElementById("syncStatus");e.className=cls;e.textContent=txt;}
-// ===== OWNER ADMIN MANAGEMENT =====
-async function loadAdminList(){
-  if(userRole!=="owner") return;
-  const listEl=document.getElementById("adminList");
-  if(!listEl) return;
-  listEl.innerHTML='<p style="color:var(--muted);font-size:12px">Loading...</p>';
-  const snap=await firebase.database().ref("admins").get();
-  if(!snap.exists()){listEl.innerHTML='<p style="color:var(--muted);font-size:12px">No admins yet.</p>';return;}
-  const data=snap.val();
-  listEl.innerHTML=Object.entries(data).map(([uid,info])=>`
-    <div class="admin-row">
-      <div>
-        <span>${info.email}</span>
-        <span class="role-badge ${info.role==='owner'?'role-owner':''}">${info.role==='owner'?'👑 Owner':'🔓 Admin'}</span>
-      </div>
-      ${info.role!=='owner'?`<button class="btn btn-reset" style="padding:4px 10px;font-size:11px" onclick="removeAdmin('${uid}','${info.email}')">Remove</button>`:''}
-    </div>`).join('');
-}
-
-async function addAdmin(){
-  if(userRole!=="owner"){alert("Only owner can add admins.");return;}
-  const email=document.getElementById("newAdminEmail").value.trim();
-  if(!email||!email.includes("@")){alert("Enter a valid email.");return;}
-  if(email===OWNER_EMAIL){alert("You are already the owner.");return;}
-  // Check if already exists
-  const snap=await firebase.database().ref("admins").orderByChild("email").equalTo(email).get();
-  if(snap.exists()){alert("This email already has access.");return;}
-  // Add to admins list with a generated key
-  await firebase.database().ref("admins").push({email:email, role:"admin"});
-  document.getElementById("newAdminEmail").value="";
-  alert("✅ "+email+" added as admin. They can now login.");
-  loadAdminList();
-}
-
-async function removeAdmin(uid, email){
-  if(userRole!=="owner"){return;}
-  if(!confirm("Remove admin access for "+email+"?"))return;
-  await firebase.database().ref("admins/"+uid).remove();
-  alert("✅ "+email+" removed.");
-  loadAdminList();
-}
-
 function updateAdminBadge(){
   const badge=document.getElementById("adminStatus");
   const btn=document.getElementById("loginBtn");
-  const trulyAdmin = isAdmin && !!firebaseUser;
-  if(userRole==="owner"){
-    badge.className="admin";
-    badge.textContent="👑 Owner mode";
-    btn.className="btn-logout";
-    btn.textContent="🚪 Logout";
-  }else if(userRole==="admin"){
+  if(isAdmin){
     badge.className="admin";
     badge.textContent="🔓 Admin mode";
     btn.className="btn-logout";
@@ -371,83 +312,42 @@ function updateAdminBadge(){
     badge.className="viewer";
     badge.textContent="👁️ Viewer mode";
     btn.className="btn-login";
-    btn.textContent="🔒 Login";
-    if(isAdmin && !firebaseUser){ isAdmin=false; }
+    btn.textContent="🔒 Admin Login";
   }
-  // Reset only for owner
-  document.getElementById("resetBtn").style.display=userRole==="owner"?"inline-block":"none";
-  // Render owner panel if owner
-  const op=document.getElementById("ownerPanel");
-  if(op){
-    op.style.display=userRole==="owner"?"block":"none";
-    if(userRole==="owner") loadAdminList();
-  }
+  document.getElementById("resetBtn").style.display=isAdmin?"inline-block":"none";
 }
 
 // ===== ADMIN MODAL =====
 function toggleAdmin(){
   if(isAdmin){
-    if(confirm("Logout?")){
-      firebase.auth().signOut();
-      firebaseUser=null; isAdmin=false; userRole=null;
-      updateAdminBadge(); rerenderAll();
+    if(confirm("Logout from admin?")){
+      isAdmin=false;
+      localStorage.removeItem("pbAdmin2025");
+      updateAdminBadge();
+      rerenderAll();
     }
-  }else{ openModal(); }
+  }else{
+    openModal();
+  }
 }
 function openModal(){
   document.getElementById("loginModal").classList.remove("hidden");
-  document.getElementById("emailInput").value="";
   document.getElementById("pwdInput").value="";
   document.getElementById("loginErr").textContent="";
-  setTimeout(()=>document.getElementById("emailInput").focus(),50);
+  setTimeout(()=>document.getElementById("pwdInput").focus(),50);
 }
 function closeModal(){document.getElementById("loginModal").classList.add("hidden");}
 function submitLogin(){
-  const email=document.getElementById("emailInput").value.trim();
   const pwd=document.getElementById("pwdInput").value.trim();
-  if(!email||!pwd){document.getElementById("loginErr").textContent="Enter email and password.";return;}
-  if(!firebaseOn){document.getElementById("loginErr").textContent="❌ Not connected.";return;}
-  document.getElementById("loginErr").textContent="🔄 Verifying...";
-  document.getElementById("pwdInput").disabled=true;
-  document.getElementById("emailInput").disabled=true;
-  _adminLoginInProgress=true;
-  firebase.auth().signInWithEmailAndPassword(email, pwd)
-    .then(async cred=>{
-      firebaseUser=cred.user;
-      _adminLoginInProgress=false;
-      // Check role
-      if(email===OWNER_EMAIL){
-        userRole="owner"; isAdmin=true;
-        // Ensure owner entry exists in DB
-        await firebase.database().ref("admins/"+firebaseUser.uid).set({email:email,role:"owner"});
-      }else{
-        // Check if this email is in approved admins
-        const snap=await firebase.database().ref("admins").orderByChild("email").equalTo(email).get();
-        if(snap.exists()){
-          const data=Object.values(snap.val())[0];
-          if(data.role==="admin"){ userRole="admin"; isAdmin=true; }
-          else{ throw new Error("not_authorized"); }
-        }else{ throw new Error("not_authorized"); }
-      }
-      document.getElementById("pwdInput").disabled=false;
-      document.getElementById("emailInput").disabled=false;
-      closeModal();
-      updateAdminBadge();
-      rerenderAll();
-    })
-    .catch(err=>{
-      _adminLoginInProgress=false;
-      document.getElementById("pwdInput").disabled=false;
-      document.getElementById("emailInput").disabled=false;
-      firebase.auth().signOut();
-      firebaseUser=null; isAdmin=false; userRole=null;
-      if(err.message==="not_authorized"){
-        document.getElementById("loginErr").textContent="❌ No access. Ask owner for permission.";
-      }else{
-        document.getElementById("loginErr").textContent="❌ Wrong email or password.";
-      }
-      document.getElementById("pwdInput").select();
-    });
+  if(!pwd){document.getElementById("loginErr").textContent="Enter a password.";return;}
+  const hash=CryptoJS.SHA256(pwd).toString(CryptoJS.enc.Hex);
+  if(ADMIN_HASHES.includes(hash)){
+    isAdmin=true;localStorage.setItem("pbAdmin2025","yes");
+    closeModal();updateAdminBadge();rerenderAll();
+  }else{
+    document.getElementById("loginErr").textContent="❌ Wrong password. Try again.";
+    document.getElementById("pwdInput").select();
+  }
 }
 document.addEventListener("keydown",e=>{
   const modal=document.getElementById("loginModal");
@@ -456,13 +356,6 @@ document.addEventListener("keydown",e=>{
     if(e.key==="Escape")closeModal();
   }
 });
-// Tab from email to password
-document.addEventListener("DOMContentLoaded",()=>{
-  const em=document.getElementById("emailInput");
-  if(em) em.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){ e.preventDefault(); document.getElementById("pwdInput").focus(); }
-  });
-});
 
 // ===== FIREBASE INIT =====
 function initFirebase(){
@@ -470,22 +363,6 @@ function initFirebase(){
     if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     dbRef=firebase.database().ref("tournament");
     firebaseOn=true;setSync("syncing","🟡 Connecting…");
-
-    // Auth state: ONLY update UI, never auto-login silently
-    firebase.auth().onAuthStateChanged(user=>{
-      firebaseUser=user;
-      // If session was persisted from before, sign out immediately
-      // Admin must always explicitly login each session
-      if(user && !_adminLoginInProgress){
-        firebase.auth().signOut();
-        firebaseUser=null;
-        isAdmin=false;
-      }
-      updateAdminBadge();
-      rerenderAll();
-    });
-
-    // Listen for data changes
     dbRef.on("value",snap=>{
       const v=snap.val();
       if(v&&typeof v==="object") state={A:v.A||{},B:v.B||{},QA:v.QA||{},QB:v.QB||{},KO:v.KO||{}};
@@ -496,25 +373,11 @@ function initFirebase(){
   }
 }
 function save(){
-  // Double check: must be Firebase authenticated
-  if(!isAdmin||!firebaseUser||!userRole){
-    alert("Session expired. Please login again.");
-    isAdmin=false; updateAdminBadge(); rerenderAll(); return;
-  }
+  if(!isAdmin)return;
   if(firebaseOn&&dbRef){
     setSync("syncing","🟡 Saving…");
-    dbRef.set(state)
-      .then(()=>setSync("live","🟢 Live · Auto-sync"))
-      .catch(e=>{
-        console.error(e);
-        if(e.code==="PERMISSION_DENIED"){
-          alert("Permission denied. Please login again.");
-          firebase.auth().signOut(); firebaseUser=null; isAdmin=false;
-          updateAdminBadge(); rerenderAll();
-        }
-        setSync("offline","🔴 Save failed");
-      });
-  }
+    dbRef.set(state).then(()=>setSync("live","🟢 Live · Auto-sync")).catch(e=>{console.error(e);setSync("offline","🔴 Save failed");});
+  }else{localStorage.setItem("pbState",JSON.stringify(state));}
 }
 
 // ===== TABS =====
@@ -546,7 +409,7 @@ function renderFixtures(sk,fixtures,cid,pfx){
     const row=document.createElement("div");
     row.className=(st.done?"played ":"")+(isAdmin?"match-admin":"match-viewer");
 
-    if(canEdit){
+    if(isAdmin){
       row.innerHTML=`
         <div class="p1 ${w1?'won':''}">${pair[0]}</div>
         <input type="number" min="0" value="${st.s1}" ${st.done?'disabled':''} id="${pfx}-${key}-s1">
@@ -566,7 +429,7 @@ function renderFixtures(sk,fixtures,cid,pfx){
   });
 }
 function updateMatch(sk,key,pfx,pairArg){
-  if(!isAdmin||!firebaseUser)return;
+  if(!isAdmin)return;
   const pair=typeof pairArg==="string"?JSON.parse(pairArg):pairArg;
   const st=state[sk][key]||{};
   if(st.done){st.done=false;state[sk][key]=st;save();if(!firebaseOn)rerenderAll();return;}
@@ -737,8 +600,7 @@ function koCard(key,label,pair,gold=false){
   const w1=st.done&&+st.s1>+st.s2,w2=st.done&&+st.s2>+st.s1;
   const div=document.createElement("div");div.className="ko-match";
   let s1el,s2el,btnEl="";
-  const canEdit2=(isAdmin&&firebaseUser&&(userRole==="owner"||userRole==="admin"));
-  if(canEdit2){
+  if(isAdmin){
     s1el=`<input type="number" min="0" value="${st.s1}" ${st.done?'disabled':''} id="KO-${key}-s1">`;
     s2el=`<input type="number" min="0" value="${st.s2}" ${st.done?'disabled':''} id="KO-${key}-s2">`;
     btnEl=`<button class="btn btn-update" onclick="updateKO('${key}',${JSON.stringify(pair).replace(/"/g,'&quot;')})">${st.done?'Edit':'Save'}</button>`;
@@ -750,11 +612,11 @@ function koCard(key,label,pair,gold=false){
     <div class="label" ${gold?'style="color:var(--gold)"':''}>${label}</div>
     <div class="ko-row"><span class="${w1?'won':''}">${pair[0]}</span>${s1el}</div>
     <div class="ko-row"><span class="${w2?'won':''}">${pair[1]}</span>${s2el}</div>
-    ${btnEl}\`;
+    ${btnEl}`;
   return div;
 }
 function updateKO(key,pairArg){
-  if(!isAdmin||!firebaseUser)return;
+  if(!isAdmin)return;
   const pair=typeof pairArg==="string"?JSON.parse(pairArg):pairArg;
   const st=state.KO[key]||{};
   if(st.done){st.done=false;state.KO[key]=st;save();if(!firebaseOn)renderKO();return;}
@@ -768,7 +630,7 @@ function updateKO(key,pairArg){
 }
 
 function resetAll(){
-  if(userRole!=="owner"){alert("Only owner can reset.");return;}
+  if(!isAdmin){alert("Admin login required.");return;}
   if(!confirm("Reset ALL scores for everyone?"))return;
   state={A:{},B:{},QA:{},QB:{},KO:{}};
   save();if(!firebaseOn)rerenderAll();
@@ -776,8 +638,33 @@ function resetAll(){
 
 updateAdminBadge();
 initFirebase();
-
 </script>
+
+        <input type="text" id="cfg_apiKey" placeholder="AIzaSy..." style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:1px">DATABASE URL</div>
+        <input type="text" id="cfg_dbUrl" placeholder="https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app" style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:1px">PROJECT ID</div>
+        <input type="text" id="cfg_projectId" placeholder="your-project-id" style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:1px">APP ID</div>
+        <input type="text" id="cfg_appId" placeholder="1:xxxxxxxxxx:web:xxxxxxxxxx" style="width:100%;padding:9px 12px;background:#0b0e1c;border:1px solid var(--line);border-radius:8px;color:var(--text);font-size:12px;font-family:monospace">
+      </div>
+    </div>
+    <div class="error-msg" id="setupErr"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeSetup()">Cancel</button>
+      <button class="btn" style="background:var(--accent2);color:#00111a;padding:10px 20px;font-size:13px;font-weight:700" onclick="saveSetup()">💾 Save &amp; Connect</button>
+    </div>
+    <p style="margin-top:10px;font-size:11px;color:var(--muted)">
+      📍 Firebase Console → Project Settings → Your apps → firebaseConfig object
+    </p>
+  </div>
+</div>
 
 </body>
 </html>
