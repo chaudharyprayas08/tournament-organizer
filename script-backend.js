@@ -13,7 +13,9 @@ const POOL_B = ["Mohit", "Anand", "Aniket", "Amitesh", "Fadil", "Prayas"];
 
 // ===== AUTH / API =====
 let authToken = sessionStorage.getItem("tournamentAdminToken") || "";
-let isAdmin = Boolean(authToken);
+let isAdmin = false;
+
+
 let state = { A: {}, B: {}, QA: {}, QB: {}, KO: {} };
 
 async function api(path, options = {}) {
@@ -39,8 +41,34 @@ async function api(path, options = {}) {
     err.status = response.status;
     throw err;
   }
-
+  
   return data;
+}
+
+async function checkUserStatus(){
+  try{
+    const response = await fetch(`${API_BASE}/auth/check`, {
+      method: "GET",
+      headers:{
+        "Content-Type" : "application/json",
+        "Authorization" : `Bearer ${authToken}`  
+      }
+    });
+    // console.log(response , "dfssd");
+
+    if(response.status === 200){
+      isAdmin = true;
+       closeModal();
+      updateAdminBadge();
+      setSync("live", "🟢 Connected");
+      await loadTournament();
+    }
+    else{
+      isAdmin = false;
+    }
+  }catch(err){
+    isAdmin = false;
+  }
 }
 
 function setSync(cls, txt) {
@@ -821,3 +849,4 @@ function rerenderAll() {
 // ===== START =====
 updateAdminBadge();
 loadTournament();
+checkUserStatus();
